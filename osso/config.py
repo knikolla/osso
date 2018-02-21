@@ -11,7 +11,12 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 
-SERVICE_PROVIDERS = {
+SAML_ENTITY_ID = 'https://sso.massopen.cloud/incommon'
+
+KEYFILE = 'etc/ca.key'
+CERTFILE = 'etc/ca.crt'
+
+SAML_SP = {
     'https://sp.example.com/SAML2': {
         'POST': 'https://sp.example.com/SAML2/POST'
     }

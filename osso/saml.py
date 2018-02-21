@@ -10,6 +10,7 @@
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
+# TODO(knikolla): User namespaces for cleaner tags
 
 from datetime import datetime
 import xml.etree.ElementTree as ET
@@ -17,7 +18,20 @@ import xml.etree.ElementTree as ET
 from osso import config
 from osso import saml_exceptions
 
-# TODO(knikolla): User namespaces for cleaner tags
+CERT = None
+KEY = None
+
+
+def load_keys():
+    global CERT
+    global KEY
+
+    with open(config.CERTFILE) as f:
+        cert = f.readlines()
+        cert = cert[1:] if 'BEGIN CERTIFICATE' in cert[0] else cert
+        cert = cert[:-1] if 'END CERTIFICATE' in cert[-1] else cert
+        CERT = ''.join(cert)
+
 
 class AuthenticationRequest(object):
     # SAMPLE AUTHN REQUEST
@@ -64,7 +78,7 @@ class AuthenticationRequest(object):
 
     def parse_issuer(self):
         issuer = self.root.find(self.ISSUER_TAG).text
-        if not issuer in config.SERVICE_PROVIDERS:
+        if not issuer in config.SAML_SP:
             raise saml_exceptions.InvalidAuthRequest
         return issuer
 
@@ -73,28 +87,27 @@ class AuthenticationRequest(object):
 
 
 class AuthenticationResponse(object):
-    SAMPLE_RESPONSE = """<samlp:Response
+    RESPONSE_TEMPLATE = """<samlp:Response
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-        ID="identifier_2"
-        InResponseTo="identifier_1"
+        ID="{response_id}"
+        InResponseTo="{in_response_to}"
         Version="2.0"
-        IssueInstant="2004-12-05T09:22:05Z"
-        Destination="https://sp.example.com/SAML2/SSO/POST">
-        <saml:Issuer>https://idp.example.org/SAML2</saml:Issuer>
+        IssueInstant="{timestamp}"
+        Destination="{endpoint}">
+        <saml:Issuer>{issuer}</saml:Issuer>
         <samlp:Status>
           <samlp:StatusCode
             Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
         </samlp:Status>
         <saml:Assertion
           xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-          ID="identifier_3"
+          ID="{assertion_id}"
           Version="2.0"
-          IssueInstant="2004-12-05T09:22:05Z">
-          <saml:Issuer>https://idp.example.org/SAML2</saml:Issuer>
+          IssueInstant="{timestamp}">
+          <saml:Issuer>{issuer}</saml:Issuer>
           <!-- a POSTed assertion MUST be signed -->
-          <ds:Signature
-            xmlns:ds="http://www.w3.org/2000/09/xmldsig#">...</ds:Signature>
+          <ds:Signature Id="placeholder"></ds:Signature>
           <saml:Subject>
             <saml:NameID
               Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">
@@ -103,21 +116,21 @@ class AuthenticationResponse(object):
             <saml:SubjectConfirmation
               Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
               <saml:SubjectConfirmationData
-                InResponseTo="identifier_1"
-                Recipient="https://sp.example.com/SAML2/SSO/POST"
-                NotOnOrAfter="2004-12-05T09:27:05Z"/>
+                InResponseTo="{in_response_to}"
+                Recipient="{endpoint}"
+                NotOnOrAfter="2021-12-05T09:27:05Z"/>
             </saml:SubjectConfirmation>
           </saml:Subject>
           <saml:Conditions
-            NotBefore="2004-12-05T09:17:05Z"
-            NotOnOrAfter="2004-12-05T09:27:05Z">
+            NotBefore="{timestamp}"
+            NotOnOrAfter="2021-12-05T09:27:05Z">
             <saml:AudienceRestriction>
-              <saml:Audience>https://sp.example.com/SAML2</saml:Audience>
+              <saml:Audience>{sp}</saml:Audience>
             </saml:AudienceRestriction>
           </saml:Conditions>
           <saml:AuthnStatement
-            AuthnInstant="2004-12-05T09:22:00Z"
-            SessionIndex="identifier_3">
+            AuthnInstant="{timestamp}"
+            SessionIndex="{assertion_id}">
             <saml:AuthnContext>
               <saml:AuthnContextClassRef>
                 urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
@@ -128,8 +141,11 @@ class AuthenticationResponse(object):
     </samlp:Response>"""
 
     def __init__(self, username, first_name, last_name, email,
-                 destination):
-        self.root = ET.fromstring(self.SAMPLE_RESPONSE)
+                 sp, endpoint, in_response_to):
+        response = self.RESPONSE_TEMPLATE.format(
+
+        )
+        self.root = ET.fromstring(self.RESPONSE_TEMPLATE)
 
     def to_string(self):
         return ET.tostring(self.root, encoding='utf8', method='xml')

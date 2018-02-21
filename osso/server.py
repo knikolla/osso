@@ -21,3 +21,4 @@ app = flask.Flask(__name__)
 request = flask.request
 abort = flask.abort
 render_template = flask.render_template
+Response = flask.Response

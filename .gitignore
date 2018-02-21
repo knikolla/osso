@@ -1,3 +1,6 @@
+etc/ca.crt
+etc/ca.key
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

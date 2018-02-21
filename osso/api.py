@@ -27,11 +27,12 @@ def post():
     saml_request = server.request.args.get(SAML_REQUEST_PARAM, None)
     saml_request = urllib.unquote(saml_request).decode('utf8')
     relay_state = server.request.args.get(RELAY_STATE_PARAM, None)
+    # TODO(knikola): Validate relay_state < 80 bytes
     if not saml_request:
         server.abort(400)
 
     request = saml.AuthenticationRequest(saml_request)
-    endpoint = config.SERVICE_PROVIDERS[request.issuer]['POST']
+    endpoint = config.SAML_SP[request.issuer]['POST']
     # TODO(knikolla): Get values from environment
     # TODO(knikolla): Build SAML response
     response = saml.AuthenticationResponse('username',
@@ -47,5 +48,15 @@ def post():
                                   relay_state=relay_state)
 
 
+@server.app.route('/saml/metadata')
+def metadata():
+    return server.Response(
+        server.render_template('saml_metadata.xml',
+                               entity_id=config.SAML_ENTITY_ID,
+                               certificate=saml.CERT),
+        mimetype='application/xml')
+
+
 if __name__ == '__main__':
+    saml.load_keys()
     server.app.run(host='0.0.0.0', threaded=True)
