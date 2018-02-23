@@ -1,5 +1,5 @@
 {
-  "idp_entity_id": "https://sso.massopen.cloud/sso",
+  "idp_entity_id": "https://kristi/idp",
   "keyfile": "/etc/osso/ca.key",
   "certfile": "/etc/osso/ca.crt",
 

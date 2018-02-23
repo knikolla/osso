@@ -11,6 +11,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 
+from osso import auth
 from osso import config
 from osso import saml
 from osso import server
@@ -27,20 +28,21 @@ def post():
     print(saml_request)
 
     relay_state = server.request.args.get(RELAY_STATE_PARAM, None)
-    # TODO(knikola): Validate relay_state < 80 bytes
+    # TODO(knikolla): Validate relay_state < 80 bytes
     if not saml_request:
         server.abort(400)
 
     request = saml.AuthenticationRequest(saml_request)
     endpoint = config.SAML_SP[request.issuer]['bindings']['POST']
-    # TODO(knikolla): Get values from environment
-    # TODO(knikolla): Build SAML response
-    response = saml.AuthenticationResponse('username',
-                                           'first_name',
-                                           'last_name',
-                                           'email',
+
+    user = auth.auth()
+    response = saml.AuthenticationResponse(user.username,
+                                           user.first_name,
+                                           user.last_name,
+                                           user.email,
                                            request.issuer,
                                            request.id)
+
     return server.render_template('saml_form.html',
                                   saml_endpoint=endpoint,
                                   saml_response=response.encoded(),
