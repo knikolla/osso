@@ -56,7 +56,8 @@ setup(
 
     install_requires=[
         'Flask',
-        'lxml'
+        'lxml',
+        'signxml'
     ],
     extras_require={
         'test': ['tox', 'pytest'],

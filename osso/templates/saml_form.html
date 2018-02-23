@@ -1,8 +1,8 @@
 <html>
 <body>
     <form method="post" action="{{ saml_endpoint }}">
-        <input type="hidden" name="SAMLResponse" value="{{ saml_response }}" />
-        <input type="hidden" name="RelayState" value="{{ relay_state}}" />
+        <input type="hidden" name="SAMLResponse" value="{{saml_response}}" />
+        <input type="hidden" name="RelayState" value="{{relay_state}}" />
         <input type="submit" value="Submit" />
     </form>
     <script type="application/javascript">document.forms[0].submit();</script>

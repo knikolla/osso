@@ -10,13 +10,35 @@
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
-# TODO(knikolla): User namespaces for cleaner tags
 
-from datetime import datetime
+import base64
+from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
+import zlib
+import uuid
 
 from osso import config
 from osso import saml_exceptions
+from osso import server
+
+import signxml
+
+
+SIGNATURE_ALGORITHM = 'rsa-sha256'
+DIGEST_ALGORITHM = 'sha256'
+C14N_ALGORITHM = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
+
+NAMESPACES = {
+    'saml': 'urn:oasis:names:tc:SAML:2.0:assertion',
+    'samlp': 'urn:oasis:names:tc:SAML:2.0:protocol',
+    'ds': 'http://www.w3.org/2000/09/xmldsig#',
+    'md': 'urn:oasis:names:tc:SAML:2.0:metadata',
+    'xs': "http://www.w3.org/2001/XMLSchema",
+    'xsi': "http://www.w3.org/2001/XMLSchema-instance"
+}
+
+for k, v in NAMESPACES.items():
+    ET.register_namespace(k, v)
 
 CERT = None
 KEY = None
@@ -31,6 +53,16 @@ def load_keys():
         cert = cert[1:] if 'BEGIN CERTIFICATE' in cert[0] else cert
         cert = cert[:-1] if 'END CERTIFICATE' in cert[-1] else cert
         CERT = ''.join(cert)
+
+    with open(config.KEYFILE) as f:
+        key = f.readlines()
+        key = key[1:] if 'BEGIN RSA' in key[0] else key
+        key = key[:-1] if 'END RSA' in key[-1] else key
+        KEY = ''.join(key)
+
+
+def decode_saml_request(request):
+    return zlib.decompress(base64.b64decode(request), -15).decode('utf-8')
 
 
 class AuthenticationRequest(object):
@@ -55,6 +87,7 @@ class AuthenticationRequest(object):
 
     def __init__(self, string):
         self.root = self.parse_root(string)
+        self.id = self.parse_id()
         self.time_issued = self.parse_timestamp()
         self.nameid_policy = self.parse_nameid_policy()
         self.issuer = self.parse_issuer()
@@ -82,70 +115,71 @@ class AuthenticationRequest(object):
             raise saml_exceptions.InvalidAuthRequest
         return issuer
 
+    def parse_id(self):
+        return self.root.attrib['ID']
+
     def parse_nameid_policy(self):
         return self.root.find(self.NAMEID_TAG).attrib.get('Format')
 
 
 class AuthenticationResponse(object):
-    RESPONSE_TEMPLATE = """<samlp:Response
-        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
-        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-        ID="{response_id}"
-        InResponseTo="{in_response_to}"
-        Version="2.0"
-        IssueInstant="{timestamp}"
-        Destination="{endpoint}">
-        <saml:Issuer>{issuer}</saml:Issuer>
-        <samlp:Status>
-          <samlp:StatusCode
-            Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
-        </samlp:Status>
-        <saml:Assertion
-          xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-          ID="{assertion_id}"
-          Version="2.0"
-          IssueInstant="{timestamp}">
-          <saml:Issuer>{issuer}</saml:Issuer>
-          <!-- a POSTed assertion MUST be signed -->
-          <ds:Signature Id="placeholder"></ds:Signature>
-          <saml:Subject>
-            <saml:NameID
-              Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">
-              3f7b3dcf-1674-4ecd-92c8-1544f346baf8
-            </saml:NameID>
-            <saml:SubjectConfirmation
-              Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
-              <saml:SubjectConfirmationData
-                InResponseTo="{in_response_to}"
-                Recipient="{endpoint}"
-                NotOnOrAfter="2021-12-05T09:27:05Z"/>
-            </saml:SubjectConfirmation>
-          </saml:Subject>
-          <saml:Conditions
-            NotBefore="{timestamp}"
-            NotOnOrAfter="2021-12-05T09:27:05Z">
-            <saml:AudienceRestriction>
-              <saml:Audience>{sp}</saml:Audience>
-            </saml:AudienceRestriction>
-          </saml:Conditions>
-          <saml:AuthnStatement
-            AuthnInstant="{timestamp}"
-            SessionIndex="{assertion_id}">
-            <saml:AuthnContext>
-              <saml:AuthnContextClassRef>
-                urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
-              </saml:AuthnContextClassRef>
-            </saml:AuthnContext>
-          </saml:AuthnStatement>
-        </saml:Assertion>
-    </samlp:Response>"""
-
     def __init__(self, username, first_name, last_name, email,
-                 sp, endpoint, in_response_to):
-        response = self.RESPONSE_TEMPLATE.format(
-
+                 sp, in_response_to):
+        endpoint = config.SAML_SP[sp]['POST']
+        timestamp = datetime.utcnow()
+        valid_until = timestamp + timedelta(hours=1)
+        response_id = '_' + uuid.uuid4().hex
+        assertion_id = '_' + uuid.uuid4().hex
+        response = server.render_template(
+            'saml_assertion.xml',
+            issuer=config.SAML_ENTITY_ID,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            sp=sp,
+            assertion_id=assertion_id,
+            response_id=response_id,
+            in_response_to=in_response_to,
+            endpoint=endpoint,
+            timestamp=timestamp.isoformat(),
+            valid_until=valid_until.isoformat()
         )
-        self.root = ET.fromstring(self.RESPONSE_TEMPLATE)
+        self.root = ET.fromstring(response)
+        self.root = self.sign(self.root, assertion_id)
+        self.validated = self.validate()
+
+    @staticmethod
+    def sign(root, uri):
+        cert = open(config.CERTFILE).read()
+        key = open(config.KEYFILE).read()
+        return signxml.XMLSigner(
+            signature_algorithm=SIGNATURE_ALGORITHM,
+            digest_algorithm=DIGEST_ALGORITHM,
+            c14n_algorithm=C14N_ALGORITHM
+        ).sign(
+            root,
+            cert=cert,
+            key=key,
+            reference_uri=uri
+        )
+
+    def assertion_root(self):
+        return self.root.find('saml:Assertion', NAMESPACES)
+
+    def validate(self):
+        return signxml.XMLVerifier().verify(
+            base64.b64decode(self.encoded()), x509_cert=CERT
+        ).signed_xml
+
+    def encoded(self):
+        return base64.b64encode(self.to_string())
 
     def to_string(self):
         return ET.tostring(self.root, encoding='utf8', method='xml')
+
+
+def get_metadata():
+    return server.render_template('saml_metadata.xml',
+                                  entity_id=config.SAML_ENTITY_ID,
+                                  certificate=CERT)

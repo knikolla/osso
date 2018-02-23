@@ -11,7 +11,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 
-SAML_ENTITY_ID = 'https://sso.massopen.cloud/incommon'
+SAML_ENTITY_ID = 'https://kristi/idp'
 
 KEYFILE = 'etc/ca.key'
 CERTFILE = 'etc/ca.crt'
@@ -19,5 +19,11 @@ CERTFILE = 'etc/ca.crt'
 SAML_SP = {
     'https://sp.example.com/SAML2': {
         'POST': 'https://sp.example.com/SAML2/POST'
+    },
+    'https://sp.testshib.org/shibboleth-sp': {
+        'POST': 'https://sp.testshib.org/Shibboleth.sso/SAML2/POST'
+    },
+    'https://sp.example.org/shibboleth': {
+        'POST': 'http://128.31.25.149/Shibboleth.sso/SAML2/POST'
     }
 }

@@ -25,7 +25,10 @@ RELAY_STATE_PARAM = 'RelayState'
 @server.app.route('/saml/redirect')
 def post():
     saml_request = server.request.args.get(SAML_REQUEST_PARAM, None)
-    saml_request = urllib.unquote(saml_request).decode('utf8')
+    saml_request = saml.decode_saml_request(saml_request)
+
+    print(saml_request)
+
     relay_state = server.request.args.get(RELAY_STATE_PARAM, None)
     # TODO(knikola): Validate relay_state < 80 bytes
     if not saml_request:
@@ -39,22 +42,17 @@ def post():
                                            'first_name',
                                            'last_name',
                                            'email',
-                                           request.issuer)
-    response = base64.b64encode(response.to_string())
-
+                                           request.issuer,
+                                           request.id)
     return server.render_template('saml_form.html',
                                   saml_endpoint=endpoint,
-                                  saml_response=response,
+                                  saml_response=response.encoded(),
                                   relay_state=relay_state)
 
 
 @server.app.route('/saml/metadata')
 def metadata():
-    return server.Response(
-        server.render_template('saml_metadata.xml',
-                               entity_id=config.SAML_ENTITY_ID,
-                               certificate=saml.CERT),
-        mimetype='application/xml')
+    return server.Response(saml.get_metadata(), mimetype='application/xml')
 
 
 if __name__ == '__main__':

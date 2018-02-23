@@ -2,12 +2,13 @@
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         ID="{{response_id}}"
         InResponseTo="{{in_response_to}}"
         Version="2.0"
         IssueInstant="{{timestamp}}"
         Destination="{{endpoint}}">
-    <saml:Issuer>{issuer}</saml:Issuer>
+    <saml:Issuer>{{issuer}}</saml:Issuer>
     <samlp:Status>
         <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
     </samlp:Status>
@@ -15,26 +16,26 @@
             ID="{{assertion_id}}"
             Version="2.0"
             IssueInstant="{{timestamp}}">
-        <saml:Issuer>{issuer}</saml:Issuer>
+        <saml:Issuer>{{issuer}}</saml:Issuer>
         <ds:Signature Id="placeholder"></ds:Signature>
         <saml:Subject>
             <saml:NameID
-                    Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">
-                3f7b3dcf-1674-4ecd-92c8-1544f346baf8
+                    Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent">
+                {{username}}
             </saml:NameID>
             <saml:SubjectConfirmation
                     Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
                 <saml:SubjectConfirmationData
                         InResponseTo="{{in_response_to}}"
                         Recipient="{{endpoint}}"
-                        NotOnOrAfter="2021-12-05T09:27:05Z"/>
+                        NotOnOrAfter="{{valid_until}}"/>
             </saml:SubjectConfirmation>
         </saml:Subject>
         <saml:Conditions
                 NotBefore="{{timestamp}}"
-                NotOnOrAfter="2021-12-05T09:27:05Z">
+                NotOnOrAfter="{{valid_until}}">
             <saml:AudienceRestriction>
-                <saml:Audience>{sp}</saml:Audience>
+                <saml:Audience>{{sp}}</saml:Audience>
             </saml:AudienceRestriction>
         </saml:Conditions>
         <saml:AuthnStatement
@@ -46,5 +47,31 @@
                 </saml:AuthnContextClassRef>
             </saml:AuthnContext>
         </saml:AuthnStatement>
+        <saml:AttributeStatement>
+            <saml:Attribute
+                    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+                    Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6"
+                    FriendlyName="eppn">
+                <saml:AttributeValue xsi:type="xsd:string">{{username}}</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute
+                    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+                    Name="urn:oid:2.5.4.42"
+                    FriendlyName="givenName">
+                <saml:AttributeValue xsi:type="xsd:string">{{first_name}}</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute
+                    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+                    Name="urn:oid:2.5.4.4"
+                    FriendlyName="sn">
+                <saml:AttributeValue xsi:type="xsd:string">{{last_name}}</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute
+                    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+                    Name="urn:oid:0.9.2342.19200300.100.1.3"
+                    FriendlyName="mail">
+                <saml:AttributeValue xsi:type="xsd:string">{{email}}</saml:AttributeValue>
+            </saml:Attribute>
+        </saml:AttributeStatement>
     </saml:Assertion>
 </samlp:Response>
