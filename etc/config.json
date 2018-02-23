@@ -1,7 +1,7 @@
 {
   "idp_entity_id": "https://sso.massopen.cloud/sso",
-  "keyfile": "/etc/ca.key",
-  "certfile": "/etc/ca.crt",
+  "keyfile": "/etc/osso/ca.key",
+  "certfile": "/etc/osso/ca.crt",
 
   "service_providers": {
     "https://sp.testshib.org/shibboleth-sp": {
