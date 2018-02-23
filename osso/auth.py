@@ -11,7 +11,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 
-import os
+from osso import server
 
 
 def auth():
@@ -20,7 +20,7 @@ def auth():
 
 class User(object):
     def __init__(self):
-        self.username = os.environ['eppn']
-        self.first_name = os.environ['givenName']
-        self.last_name = os.environ['sn']
-        self.email = os.environ['mail']
+        self.username = server.request.environ.get('eppn', '')
+        self.first_name = server.request.environ.get('givenName', '')
+        self.last_name = server.request.environ.get('sn', '')
+        self.email = server.request.environ.get('mail', '')

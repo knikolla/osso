@@ -147,7 +147,6 @@ class AuthenticationResponse(object):
         )
         self.root = ET.fromstring(response)
         self.root = self.sign(self.root, assertion_id)
-        self.validated = self.validate()
 
     @staticmethod
     def sign(root, uri):
@@ -167,11 +166,6 @@ class AuthenticationResponse(object):
     def assertion_root(self):
         return self.root.find('saml:Assertion', NAMESPACES)
 
-    def validate(self):
-        return signxml.XMLVerifier().verify(
-            base64.b64decode(self.encoded()), x509_cert=CERT
-        ).signed_xml
-
     def encoded(self):
         return base64.b64encode(self.to_string())
 
@@ -187,3 +181,6 @@ def get_metadata(root_url):
         root_url=root_url,
         valid_until=(datetime.utcnow() + timedelta(days=7)).isoformat()
     )
+
+
+load_keys()

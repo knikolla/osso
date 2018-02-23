@@ -1,5 +1,6 @@
 {
-  "idp_entity_id": "https://kristi/idp",
+  "idp_entity_id": "http://128.31.25.149/sso",
+  "idp_root_url": "http://128.31.25.149/sso",
   "keyfile": "/etc/osso/ca.key",
   "certfile": "/etc/osso/ca.crt",
 

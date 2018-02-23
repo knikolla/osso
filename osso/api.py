@@ -55,6 +55,16 @@ def metadata():
                            mimetype='application/xml')
 
 
+@server.app.route('/saml/info')
+def info():
+    user = auth.auth()
+    return server.render_template('saml_info.html',
+                                  username=user.username,
+                                  first_name=user.first_name,
+                                  last_name=user.last_name,
+                                  email=user.email,
+                                  info=str(server.request.environ))
+
+
 if __name__ == '__main__':
-    saml.load_keys()
     server.app.run(host='0.0.0.0', threaded=True)

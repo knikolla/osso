@@ -16,6 +16,7 @@ import json
 CONFIG = json.loads(open('/etc/osso/config.json').read())
 
 SAML_ENTITY_ID = CONFIG['idp_entity_id']
+IDP_ROOT_URL = CONFIG['idp_root_url']
 
 KEYFILE = CONFIG['keyfile']
 CERTFILE = CONFIG['certfile']

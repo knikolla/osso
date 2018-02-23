@@ -24,6 +24,6 @@
             </ds:KeyInfo>
         </md:KeyDescriptor>
         <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:persistent</md:NameIDFormat>
-        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="{{root_url}}saml/redirect"/>
+        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="{{root_url}}/saml/redirect"/>
     </md:IDPSSODescriptor>
 </md:EntityDescriptor>
