@@ -11,19 +11,13 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 
-SAML_ENTITY_ID = 'https://kristi/idp'
+import json
 
-KEYFILE = 'etc/ca.key'
-CERTFILE = 'etc/ca.crt'
+CONFIG = json.loads(open('/etc/config.json').read())
 
-SAML_SP = {
-    'https://sp.example.com/SAML2': {
-        'POST': 'https://sp.example.com/SAML2/POST'
-    },
-    'https://sp.testshib.org/shibboleth-sp': {
-        'POST': 'https://sp.testshib.org/Shibboleth.sso/SAML2/POST'
-    },
-    'https://sp.example.org/shibboleth': {
-        'POST': 'http://128.31.25.149/Shibboleth.sso/SAML2/POST'
-    }
-}
+SAML_ENTITY_ID = CONFIG['idp_entity_id']
+
+KEYFILE = CONFIG['keyfile']
+CERTFILE = CONFIG['certfile']
+
+SAML_SP = CONFIG['service_providers']

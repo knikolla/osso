@@ -1,0 +1,13 @@
+{
+  "idp_entity_id": "https://sso.massopen.cloud/sso",
+  "keyfile": "/etc/ca.key",
+  "certfile": "/etc/ca.crt",
+
+  "service_providers": {
+    "https://sp.testshib.org/shibboleth-sp": {
+      "bindings": {
+        "POST": "https://sp.testshib.org/Shibboleth.sso/SAML2/POST"
+      }
+    }
+  }
+}

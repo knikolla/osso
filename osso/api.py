@@ -11,9 +11,6 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 
-import base64
-import urllib
-
 from osso import config
 from osso import saml
 from osso import server
@@ -35,7 +32,7 @@ def post():
         server.abort(400)
 
     request = saml.AuthenticationRequest(saml_request)
-    endpoint = config.SAML_SP[request.issuer]['POST']
+    endpoint = config.SAML_SP[request.issuer]['bindings']['POST']
     # TODO(knikolla): Get values from environment
     # TODO(knikolla): Build SAML response
     response = saml.AuthenticationResponse('username',
@@ -52,7 +49,8 @@ def post():
 
 @server.app.route('/saml/metadata')
 def metadata():
-    return server.Response(saml.get_metadata(), mimetype='application/xml')
+    return server.Response(saml.get_metadata(server.request.url_root),
+                           mimetype='application/xml')
 
 
 if __name__ == '__main__':

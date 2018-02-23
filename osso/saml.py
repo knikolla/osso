@@ -125,7 +125,7 @@ class AuthenticationRequest(object):
 class AuthenticationResponse(object):
     def __init__(self, username, first_name, last_name, email,
                  sp, in_response_to):
-        endpoint = config.SAML_SP[sp]['POST']
+        endpoint = config.SAML_SP[sp]['bindings']['POST']
         timestamp = datetime.utcnow()
         valid_until = timestamp + timedelta(hours=1)
         response_id = '_' + uuid.uuid4().hex
@@ -179,7 +179,11 @@ class AuthenticationResponse(object):
         return ET.tostring(self.root, encoding='utf8', method='xml')
 
 
-def get_metadata():
-    return server.render_template('saml_metadata.xml',
-                                  entity_id=config.SAML_ENTITY_ID,
-                                  certificate=CERT)
+def get_metadata(root_url):
+    return server.render_template(
+        'saml_metadata.xml',
+        entity_id=config.SAML_ENTITY_ID,
+        certificate=CERT,
+        root_url=root_url,
+        valid_until=(datetime.utcnow() + timedelta(days=7)).isoformat()
+    )

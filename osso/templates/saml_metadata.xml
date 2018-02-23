@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <md:EntityDescriptor
         xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-        validUntil="2018-02-24T19:46:55Z"
+        validUntil="{{valid_until}}"
         cacheDuration="PT1519933615S"
         entityID="{{entity_id}}">
     <md:IDPSSODescriptor
@@ -24,6 +24,6 @@
             </ds:KeyInfo>
         </md:KeyDescriptor>
         <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:persistent</md:NameIDFormat>
-        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:5000/saml/redirect"/>
+        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="{{root_url}}saml/redirect"/>
     </md:IDPSSODescriptor>
 </md:EntityDescriptor>
