@@ -1,0 +1,14 @@
+---
+- name: Configure Shibboleth Attribute Map
+  copy:
+    src: "files/attribute-map.xml"
+    dest: "/etc/shibboleth/attribute-map.xml"
+  notify:
+  - shibd_restart
+
+- name: Configure Shibboleth Attribute Map
+  copy:
+    src: "files/attribute-policy.xml"
+    dest: "/etc/shibboleth/attribute-policy.xml"
+  notify:
+  - shibd_restart

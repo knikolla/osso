@@ -1,0 +1,5 @@
+---
+- hosts: sp
+  roles:
+    - sp
+  become: yes

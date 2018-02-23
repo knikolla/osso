@@ -1,3 +1,6 @@
+playbooks/site.retry
+playbooks/hosts.ini
+
 etc/ca.crt
 etc/ca.key
 
