@@ -52,6 +52,7 @@ setup(
     ],
     keywords='sso saml openid oidc oauth',
 
+    include_package_data=True,
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
