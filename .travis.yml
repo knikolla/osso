@@ -1,0 +1,17 @@
+language: python
+python:
+  - "2.7"
+  - "3.6"
+
+branches:
+  only:
+    - master
+
+cache:
+  - pip
+
+install:
+  - pip install tox-travis
+
+script:
+  - tox

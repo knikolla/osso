@@ -61,6 +61,10 @@ setup(
         'signxml'
     ],
     extras_require={
-        'test': ['tox', 'pytest'],
+        'test': [
+            'tox',
+            'pytest',
+            'flake8'
+        ],
     },
 )

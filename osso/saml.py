@@ -105,13 +105,11 @@ class AuthenticationRequest(object):
         date_str = "%Y-%m-%dT%H:%M:%SZ"
         time_issued = datetime.strptime(self.root.attrib['IssueInstant'],
                                         date_str)
-        time_now = datetime.now()
-        # TODO(knikolla): Compare time
         return time_issued
 
     def parse_issuer(self):
         issuer = self.root.find(self.ISSUER_TAG).text
-        if not issuer in config.SAML_SP:
+        if issuer not in config.SAML_SP:
             raise saml_exceptions.InvalidAuthRequest
         return issuer
 

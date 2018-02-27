@@ -12,8 +12,16 @@
 #    GNU General Public License for more details.
 
 import json
+from os import path
 
-CONFIG = json.loads(open('/etc/osso/config.json').read())
+conf_files = [f for f in ['config.json',
+                          'etc/config.json',
+                          '/etc/osso/config.json'] if path.isfile(f)]
+
+if not conf_files:
+    raise Exception
+
+CONFIG = json.loads(open(conf_files[0]).read())
 
 SAML_ENTITY_ID = CONFIG['idp_entity_id']
 IDP_ROOT_URL = CONFIG['idp_root_url']

@@ -1,0 +1,21 @@
+---
+- name: Create osso directory
+  file:
+    path: "/etc/var/www/osso"
+    state: directory
+    owner: centos
+    group: centos
+
+- name: Copy Apache configuration file
+  copy:
+    src: "files/osso.wsgi"
+    dest: "/var/www/osso/osso.wsgi"
+  notify:
+  - httpd_reload
+
+- name: Copy Apache configuration file
+  copy:
+    src: "files/osso.conf"
+    dest: "/etc/httpd/conf.d/osso.conf"
+  notify:
+  - httpd_reload
