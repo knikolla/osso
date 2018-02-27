@@ -20,6 +20,10 @@ SAML_REQUEST_PARAM = 'SAMLRequest'
 RELAY_STATE_PARAM = 'RelayState'
 
 
+def application():
+    return server.app
+
+
 @server.app.route('/saml/redirect')
 def post():
     saml_request = server.request.args.get(SAML_REQUEST_PARAM, None)

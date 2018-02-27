@@ -1,4 +1,9 @@
 ---
+- hosts: idp
+  roles:
+    - idp
+  become: yes
+
 - hosts: sp
   roles:
     - sp

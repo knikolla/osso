@@ -1,0 +1,15 @@
+CHANGES
+=======
+
+* Added description
+* Initial CI
+* End to end
+* Get auth from env
+* Fixes and helpers for docker
+* Load config from json
+* Dockerfile
+* Added ansible for sp configuration
+* SAML works
+* Initial metadata commit
+* Basic template functionality
+* Initial commit

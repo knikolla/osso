@@ -1,7 +1,27 @@
 ---
+- name: Add Shibboleth Repo
+  copy:
+    src: "files/shibboleth.repo"
+    dest: "/etc/yum.repos.d/shibboleth.repo"
+
+- name: Install packages
+  package: name="{{ item }}" state=present
+  with_items:
+  - httpd
+  - mod_wsgi
+  - epel-release
+  - python-pip
+#  - shibboleth.x86_64
+
+- name: Start HTTPD
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+
 - name: Create osso directory
   file:
-    path: "/etc/var/www/osso"
+    path: "/var/www/osso"
     state: directory
     owner: centos
     group: centos
@@ -10,6 +30,8 @@
   copy:
     src: "files/osso.wsgi"
     dest: "/var/www/osso/osso.wsgi"
+    owner: centos
+    group: centos
   notify:
   - httpd_reload
 
