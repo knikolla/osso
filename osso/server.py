@@ -22,3 +22,7 @@ request = flask.request
 abort = flask.abort
 render_template = flask.render_template
 Response = flask.Response
+
+
+def json_response(response):
+    return Response(response, mimetype='application/json')

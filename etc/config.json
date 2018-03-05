@@ -1,13 +1,28 @@
 {
   "idp_entity_id": "http://localhost/sso",
   "idp_root_url": "http://localhost/sso",
-  "keyfile": "etc/ca.key",
-  "certfile": "etc/ca.crt",
 
-  "service_providers": {
-    "https://sp.testshib.org/shibboleth-sp": {
-      "bindings": {
-        "POST": "https://sp.testshib.org/Shibboleth.sso/SAML2/POST"
+  "private_key": "etc/ca.key",
+  "public_key": "etc/ca.pub",
+  "cert": "etc/ca.crt",
+
+  "saml": {
+    "service_providers": {
+      "https://sp.testshib.org/shibboleth-sp": {
+        "bindings": {
+          "POST": "https://sp.testshib.org/Shibboleth.sso/SAML2/POST"
+        }
+      }
+    }
+  },
+
+  "oidc": {
+    "access_token_secret": "e30a4e1616414c8eab3615f7161b792e",
+
+    "clients": {
+      "test": {
+        "secret": "b2c4d361a8b64aa9ab93108ae87e5dd4"
+        "redirect_uris": []
       }
     }
   }

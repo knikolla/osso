@@ -19,6 +19,7 @@ import uuid
 
 from osso import config
 from osso import saml_exceptions
+from osso import pki
 from osso import server
 
 import signxml
@@ -39,26 +40,6 @@ NAMESPACES = {
 
 for k, v in NAMESPACES.items():
     ET.register_namespace(k, v)
-
-CERT = None
-KEY = None
-
-
-def load_keys():
-    global CERT
-    global KEY
-
-    with open(config.CERTFILE) as f:
-        cert = f.readlines()
-        cert = cert[1:] if 'BEGIN CERTIFICATE' in cert[0] else cert
-        cert = cert[:-1] if 'END CERTIFICATE' in cert[-1] else cert
-        CERT = ''.join(cert)
-
-    with open(config.KEYFILE) as f:
-        key = f.readlines()
-        key = key[1:] if 'BEGIN RSA' in key[0] else key
-        key = key[:-1] if 'END RSA' in key[-1] else key
-        KEY = ''.join(key)
 
 
 def decode_saml_request(request):
@@ -130,7 +111,7 @@ class AuthenticationResponse(object):
         assertion_id = '_' + uuid.uuid4().hex
         response = server.render_template(
             'saml_assertion.xml',
-            issuer=config.SAML_ENTITY_ID,
+            issuer=config.IDP_ENTITY_ID,
             username=username,
             first_name=first_name,
             last_name=last_name,
@@ -148,16 +129,14 @@ class AuthenticationResponse(object):
 
     @staticmethod
     def sign(root, uri):
-        cert = open(config.CERTFILE).read()
-        key = open(config.KEYFILE).read()
         return signxml.XMLSigner(
             signature_algorithm=SIGNATURE_ALGORITHM,
             digest_algorithm=DIGEST_ALGORITHM,
             c14n_algorithm=C14N_ALGORITHM
         ).sign(
             root,
-            cert=cert,
-            key=key,
+            cert=pki.CERT.key,
+            key=pki.PRIVATE.key,
             reference_uri=uri
         )
 
@@ -174,11 +153,8 @@ class AuthenticationResponse(object):
 def get_metadata(root_url):
     return server.render_template(
         'saml_metadata.xml',
-        entity_id=config.SAML_ENTITY_ID,
-        certificate=CERT,
+        entity_id=config.IDP_ENTITY_ID,
+        certificate=pki.CERT.full_key,
         root_url=root_url,
         valid_until=(datetime.utcnow() + timedelta(days=7)).isoformat()
     )
-
-
-load_keys()

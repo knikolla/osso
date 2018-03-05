@@ -15,6 +15,7 @@ from osso import auth
 from osso import config
 from osso import saml
 from osso import server
+from osso import oidc
 
 SAML_REQUEST_PARAM = 'SAMLRequest'
 RELAY_STATE_PARAM = 'RelayState'
@@ -66,6 +67,27 @@ def info():
                                   last_name=user.last_name,
                                   email=user.email,
                                   info=str(server.request.environ))
+
+
+@server.app.route('/connect/authorize')
+def authorize():
+    # TODO: Decode username and password from basic auth
+    auth_request = oidc.AuthorizationRequest.from_request(server.request)
+
+
+@server.app.route('/connect/token')
+def token():
+    pass
+
+
+@server.app.route('/connect/openid-configuration')
+def oidc_config():
+    return server.json_response(oidc.get_config(server.request.url_root))
+
+
+@server.app.route('/connect/certs')
+def oidc_certs():
+    return server.json_response(oidc.get_certs())
 
 
 if __name__ == '__main__':
